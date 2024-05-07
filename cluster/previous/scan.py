@@ -3,15 +3,16 @@ from prometheus_client import start_http_server, Gauge
 import time, requests
 from tabulate import tabulate
 from datetime import datetime
+from custom_logger import MonitorLogger
+
+logger = MonitorLogger("./log")
 
 def print_separator():
     print("=" * 50)
 
 
-
 def get_pod_names(pods):
     return [pod.metadata.name for pod in pods.items]
-
 
 
 def get_pod_metrics(pod_name):
@@ -68,7 +69,7 @@ def monitor_application_workload(namespace, application):
             for pod_name in new_pods:
                 print(f"New Pod Detected: {pod_name}")
                 # Wait for Prometheus to collect metrics for new pods
-                time.sleep(30)
+                time.sleep(5)
 
         # Detect terminated pods
         terminated_pods = previous_pods - set(current_pods)
@@ -84,6 +85,9 @@ def monitor_application_workload(namespace, application):
             node_name = v1.read_namespaced_pod(pod_name, namespace).spec.node_name
 
             table.append([pod_name, node_name, formatted_cpu_usage, formatted_memory_usage])
+            
+            #logging
+            logger.log(current_time, pod_name, node_name, formatted_cpu_usage, formatted_memory_usage)
 
         headers = ["Pod", "Node", "CPU Usage", "Memory Usage"]
         print(tabulate(table, headers=headers, tablefmt="grid"))
@@ -94,9 +98,5 @@ def monitor_application_workload(namespace, application):
         # Update previous pods
         previous_pods = set(current_pods)
 
-
-
-
 if __name__ == "__main__":
     monitor_application_workload("teastore", "teastore")
-
