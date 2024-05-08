@@ -64,11 +64,11 @@ def monitor_application_workload(namespace, application, logger):
         start_http_server(8000)
 
         display_interval = 5
-        log_interval = 1
+        log_interval = 0.1
         time_since_last_display = 0
 
         while True:
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-4]
 
             pods = v1.list_namespaced_pod(namespace, label_selector=f'app={application}')
             current_pods = get_pod_names(pods)
