@@ -11,13 +11,16 @@ class NetworkTrafficLogger:
         self.output_directory = output_directory
         self.active_processes = {}
 
+
+
     def start_capture(self, namespace, pod_name, duration):
-        # 파드 상태를 확인하고 Running 상태가 될 때까지 재시도
         if self.is_pod_ready(namespace, pod_name):
             self.capture_traffic(namespace, pod_name, duration)
         else:
             print(f"Waiting for pod {pod_name} to be ready. Retrying in 10 seconds...")
             threading.Timer(10, self.start_capture, args=[namespace, pod_name, duration]).start()
+
+
 
     def capture_traffic(self, namespace, pod_name, duration):
         start_time = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3]
@@ -28,10 +31,14 @@ class NetworkTrafficLogger:
         timer.start()
         self.active_processes[pod_name] = (process, timer)
 
+
+
     def is_pod_ready(self, namespace, pod_name):
         v1 = client.CoreV1Api()
         pod = v1.read_namespaced_pod(pod_name, namespace)
         return pod.status.phase == "Running" and all(container.ready for container in pod.status.container_statuses)
+
+
 
     def terminate_capture(self, pod_name):
         if pod_name in self.active_processes:
@@ -42,10 +49,14 @@ class NetworkTrafficLogger:
             print(f"Capture for {pod_name} has been terminated.")
             del self.active_processes[pod_name]
 
+
+
     def terminate_all(self):
         for pod_name in list(self.active_processes.keys()):
             self.terminate_capture(pod_name)
         print("All captures have been terminated.")
+
+
 
 def monitor_pod_traffic(namespace, application, logger, duration):
     config.load_kube_config()
@@ -85,6 +96,9 @@ def monitor_pod_traffic(namespace, application, logger, duration):
         logger.terminate_all()
         print(f"Traffic logs have been created in the directory: {logger.output_directory}")
         print("Application_scan session ended.")
+
+
+
 
 if __name__ == "__main__":
     output_directory = "./log"

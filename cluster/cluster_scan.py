@@ -39,14 +39,17 @@ class MonitorLogger:
                 self.logger.info(message)
             self.buffer.clear()
 
+
+
 def get_pod_names(pods):
     return [pod.metadata.name for pod in pods.items]
+
+
 
 def get_pod_metrics(pod_name):
     prometheus_url = "http://localhost:31085"
     query_cpu = f'sum(rate(container_cpu_usage_seconds_total{{pod="{pod_name}"}}[1m])) by (pod)'
     query_memory = f'sum(container_memory_working_set_bytes{{pod="{pod_name}"}}) by (pod)'
-
 
     try:
         response_cpu = requests.get(f"{prometheus_url}/api/v1/query", params={"query": query_cpu})
@@ -60,6 +63,8 @@ def get_pod_metrics(pod_name):
     except Exception as e:
         #print(f"Error fetching metrics for pod {pod_name}: {e}")
         return 0, 0
+
+
 
 
 def monitor_application_workload(namespace, application, logger, session_duration):
@@ -112,6 +117,8 @@ def monitor_application_workload(namespace, application, logger, session_duratio
     finally:
         print(f"Log files have been created in the directory: {logger.logger.handlers[0].baseFilename}")
         print("Cluster_scan session ended.")
+
+
 
 
 
