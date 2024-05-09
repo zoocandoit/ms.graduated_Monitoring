@@ -23,7 +23,7 @@ class NetworkTrafficLogger:
 
 
     def capture_traffic(self, namespace, pod_name, duration):
-        start_time = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3]
+        start_time = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-6]
         output_file = os.path.join(self.output_directory, f"{pod_name}_{start_time}.pcap")
         command = f"kubectl sniff {pod_name} -n {namespace} -o {output_file}"
         process = subprocess.Popen(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -103,7 +103,7 @@ def monitor_application_traffic(namespace, application, logger, session_duration
 
 if __name__ == "__main__":
     output_directory = "./application/log"
-    session_duration = 120
+    session_duration = 60
     logger = NetworkTrafficLogger(output_directory)
     namespace = "teastore"
     application = "teastore"
