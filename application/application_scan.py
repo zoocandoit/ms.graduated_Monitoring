@@ -87,7 +87,7 @@ def monitor_application_traffic(namespace, application, logger, session_duration
                 print(f"Application_Pod deleted: {pod}")
                 logger.terminate_capture(pod)
 
-            known_pods.update(current_pods)
+            known_pods = current_pods
             time.sleep(1)
 
     except KeyboardInterrupt:
@@ -103,7 +103,7 @@ def monitor_application_traffic(namespace, application, logger, session_duration
 
 if __name__ == "__main__":
     output_directory = "./application/log"
-    session_duration = 30
+    session_duration = 120
     logger = NetworkTrafficLogger(output_directory)
     namespace = "teastore"
     application = "teastore"

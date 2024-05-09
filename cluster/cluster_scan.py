@@ -127,7 +127,7 @@ def monitor_cluster_workload(namespace, application, logger, session_duration):
 
 if __name__ == "__main__":
     output_directory = "./cluster/log"
-    session_duration = 30
+    session_duration = 120
     logger = MonitorLogger(output_directory, buffer_size=10)
     namespace = "teastore"
     application = "teastore"

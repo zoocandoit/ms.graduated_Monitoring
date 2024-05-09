@@ -10,7 +10,7 @@ echo $! > application_scan_pid.txt
 
 
 
-#wait
+wait
 
 echo "🔥  Scanning has completed."
 
