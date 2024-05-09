@@ -17,7 +17,7 @@ class NetworkTrafficLogger:
         if self.is_pod_ready(namespace, pod_name):
             self.capture_traffic(namespace, pod_name, duration)
         else:
-            print(f"Waiting for pod {pod_name} to be ready. Retrying in 10 seconds...")
+            print(f"Application_Waiting for pod {pod_name} to be ready. Retrying in 10 seconds...")
             threading.Timer(10, self.start_capture, args=[namespace, pod_name, duration]).start()
 
 
@@ -46,7 +46,7 @@ class NetworkTrafficLogger:
             timer.cancel()
             if process.poll() is None:
                 process.terminate()
-            print(f"Capture for {pod_name} has been terminated.")
+            print(f"Application_Capture for {pod_name} has been terminated.")
             del self.active_processes[pod_name]
 
 
@@ -54,11 +54,11 @@ class NetworkTrafficLogger:
     def terminate_all(self):
         for pod_name in list(self.active_processes.keys()):
             self.terminate_capture(pod_name)
-        print("All captures have been terminated.")
+        print("Application_All captures have been terminated.")
 
 
 
-def monitor_pod_traffic(namespace, application, logger, duration):
+def monitor_application_traffic(namespace, application, logger, session_duration):
     config.load_kube_config()
     v1 = client.CoreV1Api()
     known_pods = set()
@@ -66,11 +66,11 @@ def monitor_pod_traffic(namespace, application, logger, duration):
     message_interval = 5
     last_message_time = time.time()
 
-    print(f"Application_scan session for '{application}' started. (Duration: {duration}s)")
+    print(f"Application_scan session for '{application}' started. (Duration: {session_duration}s)")
     try:
-        while time.time() - session_start_time < duration:
+        while time.time() - session_start_time < session_duration:
             if time.time() - last_message_time >= message_interval:
-                print("Collecting Application log")
+                print("Application_Collecting log")
                 last_message_time = time.time()
 
             pods = v1.list_namespaced_pod(namespace, label_selector=f'app={application}')
@@ -80,10 +80,11 @@ def monitor_pod_traffic(namespace, application, logger, duration):
             deleted_pods = known_pods - current_pods
 
             for pod in new_pods:
-                print(f"Starting traffic capture for new pod: {pod}")
-                logger.start_capture(namespace, pod, duration)
+                print(f"Application_New pod detected: {pod}")
+                logger.start_capture(namespace, pod, session_duration)
 
             for pod in deleted_pods:
+                print(f"Application_Pod deleted: {pod}")
                 logger.terminate_capture(pod)
 
             known_pods.update(current_pods)
@@ -94,17 +95,17 @@ def monitor_pod_traffic(namespace, application, logger, duration):
         logger.terminate_all()
     finally:
         logger.terminate_all()
-        print(f"Traffic logs have been created in the directory: {logger.output_directory}")
         print("Application_scan session ended.")
+        print(f"Application_scan logs have been created: {logger.output_directory}")
 
 
 
 
 if __name__ == "__main__":
-    output_directory = "./log"
-    duration = 300
+    output_directory = "./application/log"
+    session_duration = 30
     logger = NetworkTrafficLogger(output_directory)
     namespace = "teastore"
     application = "teastore"
-    monitor_pod_traffic(namespace, application, logger, duration)
+    monitor_application_traffic(namespace, application, logger, session_duration)
 

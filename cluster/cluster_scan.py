@@ -14,6 +14,8 @@ class MonitorLogger:
         start_time = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3]
         log_filename = f"cluster_{start_time}.log"
         os.makedirs(log_directory, exist_ok=True)
+        self.output_directory = output_directory
+
         self.logger = logging.getLogger(f"MonitorLogger_{start_time}")
         self.logger.setLevel(logging.INFO)
         handler = RotatingFileHandler(
@@ -24,6 +26,7 @@ class MonitorLogger:
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
+
 
     def log(self, timestamp, pod_name, node_name, cpu_usage, memory_usage):
         log_message = json.dumps({
@@ -67,8 +70,8 @@ def get_pod_metrics(pod_name):
 
 
 
-def monitor_application_workload(namespace, application, logger, session_duration):
-    print(f"Cluster_scan '{application}' session start. ({session_duration}s)")
+def monitor_cluster_workload(namespace, application, logger, session_duration):
+    print(f"Cluster_scan session for '{application}' started. (Duration: {session_duration}s)")
     session_start_time = time.time()
     log_interval = 0.01
     message_interval = 5
@@ -83,7 +86,7 @@ def monitor_application_workload(namespace, application, logger, session_duratio
         while time.time() - session_start_time < session_duration:
             current_time = datetime.now().strftime("%Y%m%d-%H%M%S.%f")[:-3]
             if time.time() - last_message_time >= message_interval:
-                print("Collecting Cluster log")
+                print("Cluster_Collecting log")
                 last_message_time = time.time()
 
             pods = v1.list_namespaced_pod(namespace, label_selector=f'app={application}')
@@ -92,11 +95,11 @@ def monitor_application_workload(namespace, application, logger, session_duratio
 
             new_pods = current_pods_set - known_pods
             for pod in new_pods:
-                print(f"New pod detected: {pod}")
+                print(f"Cluster_New pod detected: {pod}")
 
             deleted_pods = known_pods - current_pods_set
             for pod in deleted_pods:
-                print(f"Pod deleted: {pod}")
+                print(f"Cluster_Pod deleted: {pod}")
 
             known_pods = current_pods_set
             
@@ -107,22 +110,25 @@ def monitor_application_workload(namespace, application, logger, session_duratio
                     logger.log(current_time, pod_name, node_name, cpu_usage, memory_usage)
                 except client.exceptions.ApiException as e:
                     if e.status == 404:
-                        print(f"Error: Pod {pod_name} not found or no longer exists.")
+                        print(f"Cluster_Error: Pod {pod_name} not found or no longer exists.")
                     else:
-                        print(f"Unexpected error for pod {pod_name}: {e}")
+                        print(f"Cluster_Unexpected error for pod {pod_name}: {e}")
             time.sleep(log_interval)
 
     except KeyboardInterrupt:
         print("Cluster_scan interrupted by user.")
     finally:
-        print(f"Log files have been created in the directory: {logger.logger.handlers[0].baseFilename}")
-        print("Cluster_scan session ended.")
+        print("Cluster_scan session ended.")       
+        print(f"Cluster_scan logs have been created: {logger.output_directory}")
 
 
 
 
 
 if __name__ == "__main__":
-    logger = MonitorLogger("./log", buffer_size=7)
-    session_duration = 300
-    monitor_application_workload("teastore", "teastore", logger, session_duration)
+    output_directory = "./cluster/log"
+    session_duration = 30
+    logger = MonitorLogger(output_directory, buffer_size=10)
+    namespace = "teastore"
+    application = "teastore"
+    monitor_cluster_workload(namespace, application, logger, session_duration)
