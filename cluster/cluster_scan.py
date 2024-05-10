@@ -9,18 +9,18 @@ import time, requests
 
 class MonitorLogger:
     def __init__(self, log_directory, max_bytes=10485760, backup_count=5, buffer_size=10):
-        self.buffer = {}  # Changed from list to dict
+        self.buffer = {}  
         self.buffer_size = buffer_size
         os.makedirs(log_directory, exist_ok=True)
         self.loggers = {}
         self.max_bytes = max_bytes
         self.backup_count = backup_count
-        self.log_directory = log_directory  # Corrected output_directory to log_directory
+        self.log_directory = log_directory
 
     def get_logger(self, pod_name):
         if pod_name not in self.loggers:
-            start_time = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-6]
-            log_filename = f"cl_{pod_name}_{start_time}.log"
+            #start_time = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-6]
+            log_filename = f"pre_cl_{pod_name}.log"
             logger = logging.getLogger(f"MonitorLogger_{pod_name}")
             logger.setLevel(logging.INFO)
             handler = RotatingFileHandler(
@@ -32,17 +32,18 @@ class MonitorLogger:
             handler.setFormatter(formatter)
             logger.addHandler(handler)
             self.loggers[pod_name] = logger
-            self.buffer[pod_name] = []  # Initialize buffer for the pod
+            self.buffer[pod_name] = []
         return self.loggers[pod_name]
 
     def log(self, timestamp, pod_name, node_name, cpu_usage, memory_usage):
-        log_message = json.dumps({
-            "timestamp": timestamp,
+        log_data = {
             "pod_name": pod_name,
             "node_name": node_name,
             "cpu_usage": cpu_usage,
             "memory_usage": memory_usage
-        })
+        }
+        log_message = f"{timestamp} {json.dumps(log_data)}"
+        
         if pod_name not in self.buffer:
             self.buffer[pod_name] = []
         buffer = self.buffer[pod_name]
@@ -105,7 +106,7 @@ def monitor_cluster_workload(namespace, application, logger, session_duration):
         start_http_server(8000)
 
         while time.time() - session_start_time < session_duration:
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")#[:-5]
+            current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")
             if time.time() - last_message_time >= message_interval:
                 print("Cluster_Collecting log")
                 last_message_time = time.time()
@@ -144,7 +145,7 @@ def monitor_cluster_workload(namespace, application, logger, session_duration):
         print(f"Cluster_scan logs have been created: {logger.log_directory}")
 
 if __name__ == "__main__":
-    output_directory = "./cluster/log"
+    output_directory = "./cluster/precl_log"
     session_duration = 180
     logger = MonitorLogger(output_directory, buffer_size=10)
     namespace = "teastore"

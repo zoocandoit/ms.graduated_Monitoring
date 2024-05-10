@@ -24,7 +24,7 @@ class NetworkTrafficLogger:
 
     def capture_traffic(self, namespace, pod_name, duration):
         start_time = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-6]
-        output_file = os.path.join(self.output_directory, f"app_{pod_name}_{start_time}.pcap")
+        output_file = os.path.join(self.output_directory, f"app_{pod_name}.pcap")
         command = f"kubectl sniff {pod_name} -n {namespace} -o {output_file}"
         process = subprocess.Popen(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         timer = threading.Timer(duration, lambda: self.terminate_capture(pod_name))
