@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 log_directory = '../application/app_log/'
 namespace = 'teastore'
-output_file = 'pod_communication_counts.csv'
+output_file = './pod_communication_counts.csv'
 
 def get_log_files(directory):
     return [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.log')]

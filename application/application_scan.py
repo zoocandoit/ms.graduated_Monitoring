@@ -45,8 +45,8 @@ class NetworkTrafficLogger:
             process, timer = self.active_processes[pod_name]
             timer.cancel()
             if process.poll() is None:
-                process.terminate()
-            print(f"Application_Capture for {pod_name} has been terminated.")
+                process.kill()
+                process.wait()
             del self.active_processes[pod_name]
 
 
@@ -54,7 +54,7 @@ class NetworkTrafficLogger:
     def terminate_all(self):
         for pod_name in list(self.active_processes.keys()):
             self.terminate_capture(pod_name)
-        print("Application_All captures have been terminated.")
+       # print("Application_All captures have been terminated.")
 
 
 
