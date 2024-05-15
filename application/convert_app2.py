@@ -1,26 +1,26 @@
 import os
-import re
 
-log_dir = './preapp_log'
-output_dir = './app_log'
+criteria = ["GET", "POST", "PUT", "HTTP/1.1", "MYSQL"]
 
-def filter_http_methods(log_file, output_file, methods=["GET", "POST", "PUT"]):
-    pattern = re.compile(r'\b(?:' + '|'.join(methods) + r')\b')
-    with open(log_file, 'r') as file, open(output_file, 'w') as outfile:
-        for line in file:
-            if pattern.search(line):
-                outfile.write(line)
+def filter_logs(file_path):
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+        filtered_lines = [line for line in lines if any(criterion in line for criterion in criteria)]
+    return filtered_lines
 
-def process_logs(log_dir, output_dir):
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    for log_file in os.listdir(log_dir):
-        if log_file.endswith('.log'):
-            input_file_path = os.path.join(log_dir, log_file)
-            output_file_path = os.path.join(output_dir, log_file.replace('.log', '.filtered.log'))
-            filter_http_methods(input_file_path, output_file_path)
-            print(f"Filtered log created: {output_file_path}")
+log_directory = "./preapp_log"
+output_directory = "./app_log"
+os.makedirs(output_directory, exist_ok=True)
 
-if __name__ == "__main__":
-    process_logs(log_dir, output_dir)
+log_files = [os.path.join(log_directory, file) for file in os.listdir(log_directory) if file.endswith('.log')]
+
+output_paths = {}
+for file in log_files:
+    filtered_lines = filter_logs(file)
+    output_file_path = os.path.join(output_directory, os.path.basename(file).replace('.log', '_filtered.log'))
+    with open(output_file_path, 'w') as output_file:
+        output_file.writelines(filtered_lines)
+    output_paths[file] = output_file_path
+
+output_paths
 

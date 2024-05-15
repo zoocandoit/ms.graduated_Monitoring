@@ -6,12 +6,12 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 
-log_directory = '../application/preapp_log/'
+log_directory = '../application/app_log/'
 namespace = 'teastore'
 output_file = './pod_communication_counts.csv'
 
 def get_log_files(directory):
-    return [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.pcap.log')]
+    return [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('filtered.log')]
 
 filenames = get_log_files(log_directory)
 
@@ -81,7 +81,7 @@ edges = G.edges(data=True)
 nx.draw(G, pos, node_size=500, node_color="lightblue", 
         arrows=True, arrowstyle='-|>', arrowsize=8)
 
-pos_labels = {node: (coords[0], coords[1] - 0.01) for node, coords in pos.items()}
+pos_labels = {node: (coords[0], coords[1] - 0.03) for node, coords in pos.items()}
 nx.draw_networkx_labels(G, pos_labels, labels={node: node for node in G.nodes()}, 
                         font_size=10, font_weight="bold", 
                         verticalalignment='top', horizontalalignment='center')

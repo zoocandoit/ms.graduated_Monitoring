@@ -75,17 +75,19 @@ def get_pod_names(pods):
     return [pod.metadata.name for pod in pods.items]
 
 def get_pod_metrics(pod_name):
-    prometheus_url = "http://localhost:31085"
-    query_memory = f'container_memory_usage_bytes{{pod="{pod_name}"}}'
+    prometheus_url = "http://localhost:30182"
+    query_memory = f'sum(container_memory_working_set_bytes{{pod="{pod_name}"}}) by (pod)'
 
     try:
         response_memory = requests.get(f"{prometheus_url}/api/v1/query", params={"query": query_memory})
+        response_memory.raise_for_status()
 
-        if not response_memory.json()["data"]["result"]:
+
+        result = response_memory.json()["data"]["result"]
+        if not result:
             raise Exception("Empty or unexpected response from Prometheus for memory usage")
 
-        memory_usage = float(response_memory.json()["data"]["result"][0]["value"][1])
-
+        memory_usage = float(result[0]["value"][1])
         return memory_usage
 
     except Exception as e:
@@ -145,7 +147,7 @@ def monitor_cluster_workload(namespace, application, logger, session_duration):
         print(f"Cluster_scan logs have been created: {logger.log_directory}")
 
 if __name__ == "__main__":
-    output_directory = "./cluster/cl_log2"
+    output_directory = "./cluster/cl_log"
     session_duration = 300
     logger = MonitorLogger(output_directory, buffer_size=10)
     namespace = "teastore"
