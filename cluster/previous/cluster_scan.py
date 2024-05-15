@@ -5,12 +5,11 @@ from datetime import datetime
 import json
 from kubernetes import client, config
 from prometheus_client import start_http_server
-import time
-import requests
+import time, requests
 
 class MonitorLogger:
     def __init__(self, log_directory, max_bytes=10485760, backup_count=5, buffer_size=10):
-        self.buffer = {}
+        self.buffer = {}  
         self.buffer_size = buffer_size
         os.makedirs(log_directory, exist_ok=True)
         self.loggers = {}
@@ -37,12 +36,11 @@ class MonitorLogger:
 
     def log(self, timestamp, pod_name, node_name, memory_usage):
         log_data = {
-            "timestamp": timestamp,
             "pod_name": pod_name,
             "node_name": node_name,
             "memory_usage": memory_usage
         }
-        log_message = json.dumps(log_data)
+        log_message = f"{timestamp} {json.dumps(log_data)}"
         
         if pod_name not in self.buffer:
             self.buffer[pod_name] = []
@@ -74,28 +72,24 @@ class MonitorLogger:
 def get_pod_names(pods):
     return [pod.metadata.name for pod in pods.items]
 
-def get_pod_metrics(pod_name):
+def get_pod_memory_usage(pod_name):
     prometheus_url = "http://localhost:31085"
-    query_memory = f'container_memory_usage_bytes{{pod="{pod_name}"}}'
+    query_memory = f'sum(container_memory_working_set_bytes{{pod="{pod_name}"}}) by (pod)'
 
     try:
         response_memory = requests.get(f"{prometheus_url}/api/v1/query", params={"query": query_memory})
-
         if not response_memory.json()["data"]["result"]:
-            raise Exception("Empty or unexpected response from Prometheus for memory usage")
-
+            raise Exception("Empty or unexpected response from Prometheus")
         memory_usage = float(response_memory.json()["data"]["result"][0]["value"][1])
-
         return memory_usage
 
     except Exception as e:
-        print(f"Error fetching metrics for pod {pod_name}: {e}")
         return 0
 
 def monitor_cluster_workload(namespace, application, logger, session_duration):
     print(f"Cluster_scan session for '{application}' started. (Duration: {session_duration}s)")
     session_start_time = time.time()
-    log_interval = 1
+    log_interval = 0.01
     message_interval = 5
     last_message_time = time.time()
     known_pods = set()
@@ -127,7 +121,7 @@ def monitor_cluster_workload(namespace, application, logger, session_duration):
             
             for pod_name in current_pods:
                 try:
-                    memory_usage = get_pod_metrics(pod_name)
+                    memory_usage = get_pod_memory_usage(pod_name)
                     node_name = v1.read_namespaced_pod(pod_name, namespace).spec.node_name
                     logger.log(current_time, pod_name, node_name, memory_usage)
                 except client.exceptions.ApiException as e:
@@ -141,11 +135,11 @@ def monitor_cluster_workload(namespace, application, logger, session_duration):
         print("Cluster_scan interrupted by user.")
     finally:
         logger.flush_all()
-        print("Cluster_scan session ended.")
+        print("Cluster_scan session ended.")       
         print(f"Cluster_scan logs have been created: {logger.log_directory}")
 
 if __name__ == "__main__":
-    output_directory = "./cluster/cl_log2"
+    output_directory = "./cluster/cl_log"
     session_duration = 300
     logger = MonitorLogger(output_directory, buffer_size=10)
     namespace = "teastore"

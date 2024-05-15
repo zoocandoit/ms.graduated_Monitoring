@@ -6,12 +6,12 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 
-log_directory = '../application/app_log/'
+log_directory = '../application/preapp_log/'
 namespace = 'teastore'
 output_file = './pod_communication_counts.csv'
 
 def get_log_files(directory):
-    return [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.log')]
+    return [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.pcap.log')]
 
 filenames = get_log_files(log_directory)
 
@@ -32,8 +32,6 @@ def get_ip_to_pod_mapping(namespace):
     return ip_to_pod
 
 ip_to_pod_mapping = get_ip_to_pod_mapping(namespace)
-
-
 
 def parse_all_routes_with_counts(filenames, ip_mapping):
     all_routes = defaultdict(Counter)
@@ -64,14 +62,9 @@ for pod in all_pods:
         if inner_pod not in all_routes_counts[pod]:
             all_routes_counts[pod][inner_pod] = 0
 
-
-
 df_routes = pd.DataFrame(all_routes_counts).fillna(0).astype(int)
 df_routes.to_csv(output_file, index=True)
 print(f"Pod Communication Counts saved to {output_file}")
-
-
-
 
 # Create a directed graph
 G = nx.DiGraph()
@@ -88,12 +81,10 @@ edges = G.edges(data=True)
 nx.draw(G, pos, node_size=500, node_color="lightblue", 
         arrows=True, arrowstyle='-|>', arrowsize=8)
 
-
-pos_labels = {node: (coords[0], coords[1] - 0.02) for node, coords in pos.items()}
+pos_labels = {node: (coords[0], coords[1] - 0.01) for node, coords in pos.items()}
 nx.draw_networkx_labels(G, pos_labels, labels={node: node for node in G.nodes()}, 
                         font_size=10, font_weight="bold", 
                         verticalalignment='top', horizontalalignment='center')
-
 
 edge_labels = {(u, v): d['weight'] for u, v, d in edges}
 nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, label_pos=0.5, font_size=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0.7))

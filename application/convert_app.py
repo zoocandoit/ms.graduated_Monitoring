@@ -3,7 +3,7 @@ import subprocess
 import re
 
 pcap_directory = "./pcap"
-txt_directory = "./app_log"
+txt_directory = "./preapp_log"
 
 os.makedirs(txt_directory, exist_ok=True)
 
