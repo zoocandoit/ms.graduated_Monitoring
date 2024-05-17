@@ -75,7 +75,7 @@ def get_pod_names(pods):
     return [pod.metadata.name for pod in pods.items]
 
 def get_pod_metrics(pod_name):
-    prometheus_url = "http://localhost:30182"
+    prometheus_url = "http://localhost:32758"
     query_memory = f'sum(container_memory_working_set_bytes{{pod="{pod_name}"}}) by (pod)'
 
     try:
@@ -148,7 +148,7 @@ def monitor_cluster_workload(namespace, application, logger, session_duration):
 
 if __name__ == "__main__":
     output_directory = "./cluster/cl_log"
-    session_duration = 300
+    session_duration = 120
     logger = MonitorLogger(output_directory, buffer_size=10)
     namespace = "teastore"
     application = "teastore"

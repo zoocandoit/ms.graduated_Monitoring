@@ -7,8 +7,10 @@ def suggest_optimal_placement(counts_df, dep_df, threshold, nodes):
     norm_counts_df = counts_df / counts_df.values.max()
     norm_dep_df = dep_df / dep_df.values.max()
 
-    weight_counts = 0.618
-    weight_dep = 0.382
+    weight_counts = 0.7
+    weight_dep = 0.3
+    #weight_count+weight_dep=1
+
     combined_df = weight_counts * norm_counts_df + weight_dep * norm_dep_df
 
     sorted_pods = combined_df.sum(axis=1).sort_values(ascending=False).index.tolist()

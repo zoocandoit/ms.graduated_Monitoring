@@ -87,7 +87,7 @@ def monitor_application_traffic(namespace, application, logger, session_duration
 
 if __name__ == "__main__":
     output_directory = "./application/pcap"
-    session_duration = 300
+    session_duration = 120
     logger = NetworkTrafficLogger(output_directory)
     namespace = "teastore"
     application = "teastore"

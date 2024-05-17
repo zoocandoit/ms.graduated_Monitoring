@@ -5,7 +5,7 @@ criteria = ["GET", "POST", "PUT", "HTTP/1.1", "MYSQL"]
 def filter_logs(file_path):
     with open(file_path, 'r') as f:
         lines = f.readlines()
-        filtered_lines = [line for line in lines if any(criterion in line for criterion in criteria)]
+        filtered_lines = [line for line in lines if any(criterion.lower() in line.lower() for criterion in criteria)]
     return filtered_lines
 
 log_directory = "./preapp_log"
