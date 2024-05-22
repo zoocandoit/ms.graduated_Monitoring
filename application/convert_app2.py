@@ -1,6 +1,6 @@
 import os
 
-criteria = ["GET", "POST", "PUT", "HTTP/1.1", "MYSQL"]
+criteria = ["HTTP/1.1 200", "MYSQL"]
 
 def filter_logs(file_path):
     with open(file_path, 'r') as f:
